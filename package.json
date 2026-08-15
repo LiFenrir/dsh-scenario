@@ -1,0 +1,30 @@
+{
+  "name": "@lifenrir/dsh-scenario",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./client": "./lib/client.js",
+    "./package.json": "./package.json"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "inject": [
+        "@deepseek-ai/dsh-client-runtime",
+        "@deepseek-ai/dsh-client-ui-settings",
+        "@deepseek-ai/dsh-client-ui-slots"
+      ],
+      "platform": "web"
+    }
+  },
+  "description": "场景管理插件：dev / wiki / personal 等人设 + 模型 + 权限配置，设置页一键热切换",
+  "dependencies": {
+    "schemastery": "^3.18.0",
+    "@deepseek-ai/dsh-settings": "^0.1.0-rc.6"
+  },
+  "license": "MIT"
+}
