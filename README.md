@@ -1,17 +1,19 @@
 # dsh-scenario
 
-DeepSeek Harness（DSH）场景管理插件：把「人设 + 模型 + 权限」打包成命名场景（如 `dev` / `wiki` / `personal`），在设置页一键热切换。
+DeepSeek Harness（DSH）场景管理插件：把「人设 + 模型 + 权限 + 插件」打包成命名场景（如 `dev` / `wiki` / `personal`），在设置页一键热切换。
 
 场景即一组可复用配置，切换后：
 
 - **人设** 通过 `systemPrompt` 注入，**当前会话与新会话立即生效**；
 - **模型**（provider / model / reasoning effort）写入 `agent-default-model`，新会话继承；
-- **权限**（`workspace-write` / `danger-full-access`）写入 `permission` 预设，新会话继承。
+- **权限**（`workspace-write` / `danger-full-access`）写入 `permission` 预设，新会话继承；
+- **插件** 按场景的 `plugins` 清单一键启用，其它被托管插件一并停止（Loader 条目热开关）。
 
 ## 功能
 
 - 内置 `personal` / `dev` / `wiki` 三个示例场景，可自行增删。
 - 设置页新增「场景」栏，罗列全部场景、标记当前场景、一键切换。
+- 每个场景可绑定一组插件（`plugins`），切换场景即热启用/停止对应插件。
 - 切换即时生效，无需重启 `dsh web`。
 
 ## 安装
@@ -44,12 +46,14 @@ scenario:
       provider: deepseek-official
       model: deepseek-v4-flash
       permission: workspace-write
+      plugins: [pet, ui-skin-center]
     dev:
       description: 开发场景
       persona: You are a coding agent. Your working directory is {{cwd}}.
       provider: deepseek-official
       model: deepseek-v4-flash
       permission: workspace-write
+      plugins: [ui-layout, vscode-host-files]
     wiki:
       description: Wiki 管理
       persona: You are a knowledge management assistant. Organize and maintain the wiki.
@@ -69,6 +73,27 @@ scenario:
 | `scenarios.<name>.model` | 是 | 模型 id |
 | `scenarios.<name>.reasoningEffort` | 否 | 思考强度 |
 | `scenarios.<name>.permission` | 是 | `workspace-write` 或 `danger-full-access` |
+| `scenarios.<name>.plugins` | 否 | 该场景启用的插件条目 id 列表（默认 `[]`） |
+
+## 插件绑定
+
+每个场景的 `plugins` 填插件在 cordis 补丁层里的**本地条目 id**（即 `cordis.patch.yml` / bundle 补丁里 `- id: xxx` 的 `xxx`），例如：
+
+- `pet`、`ui-skin-center`（`dsh-web-ui` 的宠物 / 皮肤中心）；
+- `ui-layout`、`vscode-host-files`（`dsh-vscode-layout` 的布局 / 宿主接口）；
+- 其它 bundle 补丁插入的条目 id。
+
+切换场景时，插件对账规则：
+
+1. 取所有场景 `plugins` 的**并集**作为「托管集」；
+2. 托管集内，属于当前场景的条目 → 启用；其余 → 停用；
+3. 不在托管集内的条目一律不动。
+
+实现走 Loader 的 `Entry.update`（而非 `ctx.loader.update`），因此**不会把 `disabled` 状态写回 cordis.yml**，补丁层组合保持原样；重启后按当前场景重新对账。
+
+> 注意：热开关停用的是插件的**宿主端**（其 fiber 被 dispose）。浏览器端模块在下次刷新页面时随
+> `window.__DSH_BOOT__` 重新合成而卸载；不刷新则已加载的客户端 UI 仍会保留。另请勿把
+> `apiproxy`、`ui-settings` 这类基础服务条目写进 `plugins`，否则会停掉设置页本身。
 
 ## 结构
 
@@ -82,8 +107,8 @@ dsh-scenario/
 ```
 
 - **宿主端**（`lib/index.js`）注册 `scenario` 设置命名空间，注入场景人设到 `systemPrompt`，
-  场景切换时把模型/权限写入 dsh 默认值。
-- **客户端**（`lib/client.js`）注册 `settings.section`（id `scenario`），罗列场景并热切换。
+  场景切换时把模型/权限写入 dsh 默认值，并按 `plugins` 清单对账 Loader 条目启用/停用插件。
+- **客户端**（`lib/client.js`）注册 `settings.section`（id `scenario`），罗列场景（含插件清单）并热切换。
 
 ## 许可
 
