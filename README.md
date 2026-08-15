@@ -12,8 +12,10 @@ DeepSeek Harness（DSH）场景管理插件：把「人设 + 模型 + 权限 + �
 ## 功能
 
 - 内置 `personal` / `dev` / `wiki` 三个示例场景，可自行增删。
-- 设置页新增「场景」栏，罗列全部场景、标记当前场景、一键切换。
-- 每个场景可绑定一组插件（`plugins`），切换场景即热启用/停止对应插件。
+- 设置页新增「配置」栏（合并了场景与插件管理）：罗列全部场景、标记当前场景。
+- 点击场景进入**动态配置页**：首行展示模型/人设信息，下方以单列表分两组展示插件 ——
+  - **基础插件**（DeepSeek Harness 运行所需，只读恒启用）；
+  - **额外插件**（功能插件，行尾开关一键启用/停止）。
 - 切换即时生效，无需重启 `dsh web`。
 
 ## 安装
@@ -25,7 +27,7 @@ dsh plugin --profile web add link:$(pwd)/dsh-scenario
 # dsh plugin --profile web add @lifenrir/dsh-scenario
 ```
 
-装完重启 `dsh web`，设置页即可看到「场景」栏。
+装完重启 `dsh web`，设置页即可看到「配置」栏。
 
 > 宿主端把场景的模型/权限写入 `agent-default-model` / `permission` 两个设置命名空间，需要它们在
 > `dsh-host-apiproxy` 的 `WEB_SETTINGS_NAMESPACES` 白名单内（`scenario` 命名空间同样需要）。从源码跑
@@ -77,7 +79,11 @@ scenario:
 
 ## 插件绑定
 
-每个场景的 `plugins` 填插件在 cordis 补丁层里的**本地条目 id**（即 `cordis.patch.yml` / bundle 补丁里 `- id: xxx` 的 `xxx`），例如：
+配置页把插件分两块展示：**基础插件**（只读，恒启用）与**额外插件**（可切换）。分类和中文名/注释定义在
+`lib/client.js` 的 `PLUGIN_CATALOG` 常量里，可按需增删条目。
+
+每个场景的 `plugins` 填**额外插件**在 cordis 补丁层里的**本地条目 id**（即 `cordis.patch.yml` / bundle 补丁里
+`- id: xxx` 的 `xxx`），例如：
 
 - `pet`、`ui-skin-center`（`dsh-web-ui` 的宠物 / 皮肤中心）；
 - `ui-layout`、`vscode-host-files`（`dsh-vscode-layout` 的布局 / 宿主接口）；
@@ -93,7 +99,8 @@ scenario:
 
 > 注意：热开关停用的是插件的**宿主端**（其 fiber 被 dispose）。浏览器端模块在下次刷新页面时随
 > `window.__DSH_BOOT__` 重新合成而卸载；不刷新则已加载的客户端 UI 仍会保留。另请勿把
-> `apiproxy`、`ui-settings` 这类基础服务条目写进 `plugins`，否则会停掉设置页本身。
+> `apiproxy`、`ui-settings` 这类基础服务条目写进 `plugins`，否则会停掉设置页本身 —— 基础插件
+> 已按 `PLUGIN_CATALOG.base` 归类为只读，配置页不给它们开关。
 
 ## 结构
 
@@ -102,13 +109,14 @@ dsh-scenario/
 ├── package.json       # 声明 dsh.bundle + dsh.client
 ├── cordis.patch.yml   # bundle 补丁层（插入 scenario 行）
 └── lib/
-    ├── index.js       # 宿主端：场景命名空间 + 人设注入 + 模型/权限传播
-    └── client.js      # 浏览器端：设置「场景」栏 UI
+    ├── index.js       # 宿主端：场景命名空间 + 人设注入 + 模型/权限传播 + 插件对账
+    └── client.js      # 浏览器端：设置「配置」栏（场景列表 → 场景详情：模型/人设 + 基础/额外插件开关）
 ```
 
 - **宿主端**（`lib/index.js`）注册 `scenario` 设置命名空间，注入场景人设到 `systemPrompt`，
   场景切换时把模型/权限写入 dsh 默认值，并按 `plugins` 清单对账 Loader 条目启用/停用插件。
-- **客户端**（`lib/client.js`）注册 `settings.section`（id `scenario`），罗列场景（含插件清单）并热切换。
+- **客户端**（`lib/client.js`）注册 `settings.section`（id `scenario`，标签「配置」）：场景列表点击进入
+  详情页，展示模型/人设信息与基础/额外插件两组列表，额外插件行尾开关写入 `plugins`。
 
 ## 许可
 
