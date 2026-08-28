@@ -1,6 +1,6 @@
 {
   "name": "@lifenrir/dsh-scenario",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "type": "module",
   "main": "lib/index.js",
   "exports": {
@@ -21,7 +21,7 @@
       "platform": "web"
     }
   },
-  "description": "场景配置插件：人设 + 模型 + 权限 + 插件动态管理，配置页自动发现已安装插件并按场景开关",
+  "description": "场景配置插件：不同插件组合即不同场景，统一对插件开启关闭（配置页自动发现已安装插件并按场景热切换）；模型由用户在会话窗口按需选取",
   "dependencies": {
     "schemastery": "^3.18.0",
     "@deepseek-ai/dsh-settings": "^0.1.0-rc.6"

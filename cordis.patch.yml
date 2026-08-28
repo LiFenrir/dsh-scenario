@@ -1,7 +1,6 @@
 # dsh-scenario bundle patch: inserts its plugin row into the web profile roster.
 # The single row mounts both halves: the host side (scenario settings namespace,
-# persona injection, model/permission propagation) and the browser side (the
-# settings-section 场景 UI).
+# plugin-entry reconciliation) and the browser side (the settings-section 场景 UI).
 - insert:
     - id: scenario
       name: '@lifenrir/dsh-scenario'
