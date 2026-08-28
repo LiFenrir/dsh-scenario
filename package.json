@@ -1,6 +1,6 @@
 {
   "name": "@lifenrir/dsh-scenario",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "type": "module",
   "main": "lib/index.js",
   "files": [
@@ -26,6 +26,21 @@
     }
   },
   "description": "场景配置插件：不同插件组合即不同场景，统一对插件开启关闭（配置页自动发现已安装插件并按场景热切换）；模型由用户在会话窗口按需选取",
+  "keywords": [
+    "deepseek-harness",
+    "dsh",
+    "dsh-plugin",
+    "cordis",
+    "scenario",
+    "plugin-manager"
+  ],
+  "author": "LiFenrir",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/LiFenrir/dsh-scenario.git"
+  },
+  "homepage": "https://github.com/LiFenrir/dsh-scenario#readme",
+  "bugs": "https://github.com/LiFenrir/dsh-scenario/issues",
   "dependencies": {
     "@deepseek-ai/dsh-settings": "^0.1.0-rc.6",
     "schemastery": "^3.18.0"
